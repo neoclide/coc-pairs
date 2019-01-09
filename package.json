@@ -1,0 +1,67 @@
+{
+  "name": "coc-pairs",
+  "version": "1.0.0",
+  "description": "Auto pair extension for coc.nvim",
+  "main": "lib/index.js",
+  "publisher": "chemzqm",
+  "keywords": [
+    "coc.nvim",
+    "autopair"
+  ],
+  "engines": {
+    "coc": "^0.0.46"
+  },
+  "scripts": {
+    "clean": "rimraf lib",
+    "build": "tsc -p tsconfig.json",
+    "prepare": "yarn clean && yarn build"
+  },
+  "activationEvents": [
+    "*"
+  ],
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "properties": {
+        "pairs.disableLanguages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "A list of languages IDs to disable this extension on"
+        },
+        "pairs.enableCharacters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "(",
+            "[",
+            "{",
+            "<",
+            "'",
+            "\"",
+            "`"
+          ],
+          "description": "Enabled character list for keymap."
+        }
+      }
+    }
+  },
+  "author": "chemzqm@gmail.com",
+  "license": "MIT",
+  "devDependencies": {
+    "@chemzqm/tsconfig": "^0.0.3",
+    "@chemzqm/tslint-config": "^1.0.17",
+    "@types/node": "^10.12.9",
+    "coc.nvim": "^0.0.46",
+    "rimraf": "^2.6.2",
+    "tslint": "^5.11.0",
+    "typescript": "^3.1.6"
+  },
+  "dependencies": {
+    "tslib": "^1.9.3"
+  }
+}
