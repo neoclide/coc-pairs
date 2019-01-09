@@ -29,7 +29,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let pre = line.slice(0, pos.character)
     let rest = line.slice(pos.character)
     let isQuote = ["'", '"', '`'].indexOf(character) !== -1
-    if (character == '"' && filetype == 'vim' && rest.length == 0 && (!pre || pre[pre.length - 1] == ' ')) {
+    if (character == '"' &&
+      filetype == 'vim' &&
+      rest.length == 0 &&
+      !(/^\s*let\s/.test(pre)) &&
+      (!pre || pre[pre.length - 1] == ' ')) {
       // comment of vim
       return character
     }
