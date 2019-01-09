@@ -4,6 +4,10 @@
   "description": "Auto pair extension for coc.nvim",
   "main": "lib/index.js",
   "publisher": "chemzqm",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neoclide/coc-pairs.git"
+  },
   "keywords": [
     "coc.nvim",
     "autopair"
