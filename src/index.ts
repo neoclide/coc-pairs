@@ -34,7 +34,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }
     if (isQuote && rest[0] == character && rest[1] != character) {
       // move position
-      nvim.command(`call feedkeys("\\<Right>", 'int')`, true)
+      nvim.command(`call feedkeys("\\<Right>", 'in')`, true)
       return ''
     }
     if (isQuote && pre.length >= 2 && pre[pre.length - 1] == character && pre[pre.length - 2] == character) {
@@ -42,9 +42,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
       return character
     }
     if (character == '"') {
-      nvim.command(`call feedkeys('""'."\\<Left>", 'int')`, true)
+      nvim.command(`call feedkeys('""'."\\<Left>", 'in')`, true)
     } else {
-      nvim.command(`call feedkeys("${character}${pairs.get(character)}\\<Left>", 'int')`, true)
+      nvim.command(`call feedkeys("${character}${pairs.get(character)}\\<Left>", 'in')`, true)
     }
     return ''
   }
@@ -58,7 +58,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let line = doc.getline(pos.line)
     let rest = line.slice(pos.character)
     if (rest[0] == character) {
-      nvim.command(`call feedkeys("\\<Right>", 'int')`, true)
+      nvim.command(`call feedkeys("\\<Right>", 'in')`, true)
       return ''
     }
     return character
