@@ -69,8 +69,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (pairs.has(character)) {
       subscriptions.push(workspace.registerExprKeymap('i', character, insertPair.bind(null, character), false))
     }
-    if (['{', '(', '['].indexOf(character) !== -1) {
-      let matched = pairs.get(character)
+    let matched = pairs.get(character)
+    if (matched != character) {
       subscriptions.push(workspace.registerExprKeymap('i', matched, closePair.bind(null, matched), false))
     }
   }
