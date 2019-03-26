@@ -12,7 +12,7 @@ just move to right by one column.
 character would just inserted without insert paired character, this makes insert
 triple quotes easier.
 
-**Note** `'` only paris when character before is not word character.
+**Note** `'` only pairs when character before is not word character.
 
 **Note** for `<` to insert paired `>`, the previous character should not be
 empty space.
@@ -35,9 +35,9 @@ In your vim/neovim, run command:
   default: `[]`.
 - `pairs.enableCharacters`, list of enabled characters, default: `` ["(", "[", "{", "<", "'", "\"", "`"] ``.
 
-To disable characters for specified filetype, you can use `b:coc_paris_disabled`, ex:
+To disable characters for specified filetype, you can use `b:coc_pairs_disabled`, ex:
 
-    autocmd FileType markdown let b:coc_paris_disabled = ['`']
+    autocmd FileType markdown let b:coc_pairs_disabled = ['`']
 
 ## License
 
