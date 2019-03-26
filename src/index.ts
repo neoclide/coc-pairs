@@ -39,6 +39,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
       nvim.command(`call feedkeys("\\<Right>", 'in')`, true)
       return ''
     }
+    // Only pair single quotes if previous character is whitespace.
+    if (character === "'" && pre.match(/.*\w$/)) {
+      return character;
+    }
     if (isQuote && pre.length >= 2 && pre[pre.length - 1] == character && pre[pre.length - 2] == character) {
       // allow triple quote
       return character
