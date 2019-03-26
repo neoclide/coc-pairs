@@ -31,7 +31,7 @@ In your vim/neovim, run command:
 
 - `pairs.disableLanguages`, list of language ids to disable this extension,
   default: `[]`.
-- `pairs.enableCharacters`, list of enabled characters, default: `["(", "[", "{", "<", "'", "\"", "`"]`.
+- `pairs.enableCharacters`, list of enabled characters, default: `` ["(", "[", "{", "<", "'", "\"", "`"] ``.
 
 To disable characters for specified filetype, you can use `b:coc_paris_disabled`, ex:
 
