@@ -12,6 +12,8 @@ just move to right by one column.
 character would just inserted without insert paired character, this makes insert
 triple quotes easier.
 
+**Note** `'` only paris when character before is not word character.
+
 **Note** for `<` to insert paired `>`, the previous character should not be
 empty space.
 
