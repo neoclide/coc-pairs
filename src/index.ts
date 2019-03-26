@@ -24,6 +24,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (!doc) return character
     let { filetype } = doc
     if (disableLanguages.indexOf(filetype) !== -1) return character
+    let chars = await doc.buffer.getVar('coc_paris_disabled') as string[]
+    if (chars && chars.length && chars.indexOf(character) !== -1) return character
     let pos = await workspace.getCursorPosition()
     let line = doc.getline(pos.line)
     let pre = line.slice(0, pos.character)
@@ -74,5 +76,5 @@ export async function activate(context: ExtensionContext): Promise<void> {
       subscriptions.push(workspace.registerExprKeymap('i', matched, closePair.bind(null, matched), false))
     }
   }
-  nvim.resumeNotification()
+  await nvim.resumeNotification(false, true)
 }

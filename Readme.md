@@ -33,6 +33,10 @@ In your vim/neovim, run command:
   default: `[]`.
 - `pairs.enableCharacters`, list of enabled characters, default: `["(", "[", "{", "<", "'", "\"", "`"]`.
 
+To disable characters for specified filetype, you can use `b:coc_paris_disabled`, ex:
+
+    autocmd FileType markdown let b:coc_paris_disabled = ['`']
+
 ## License
 
 MIT
