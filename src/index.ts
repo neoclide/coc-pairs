@@ -4,16 +4,21 @@ const pairs: Map<string, string> = new Map()
 pairs.set('{', '}')
 pairs.set('[', ']')
 pairs.set('(', ')')
+pairs.set('<', '>')
 pairs.set('"', '"')
 pairs.set("'", "'")
 pairs.set('`', '`')
-pairs.set('<', '>')
 
 export async function activate(context: ExtensionContext): Promise<void> {
   let { subscriptions } = context
   const config = workspace.getConfiguration('pairs')
   const disableLanguages = config.get<string[]>('disableLanguages')
   const characters = config.get<string[]>('enableCharacters')
+  let enableBackspace = config.get<boolean>('enableBackspace')
+  if (enableBackspace) {
+    let map = await workspace.nvim.call('maparg', ['<bs>', 'i'])
+    if (map) enableBackspace = false
+  }
 
   if (characters.length == 0) return
   const { nvim } = workspace
@@ -39,9 +44,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
       nvim.command(`call feedkeys("\\<Right>", 'in')`, true)
       return ''
     }
-    // Only pair single quotes if previous character is whitespace.
+    // Only pair single quotes if previous character is not word.
     if (character === "'" && pre.match(/.*\w$/)) {
-      return character;
+      return character
     }
     if (isQuote && pre.length >= 2 && pre[pre.length - 1] == character && pre[pre.length - 2] == character) {
       // allow triple quote
@@ -80,5 +85,40 @@ export async function activate(context: ExtensionContext): Promise<void> {
       subscriptions.push(workspace.registerExprKeymap('i', matched, closePair.bind(null, matched), false))
     }
   }
-  await nvim.resumeNotification(false, true)
+  if (enableBackspace) {
+    subscriptions.push(workspace.registerExprKeymap('i', '<bs>', onBackspace, false))
+  }
+  subscriptions.push(workspace.registerKeymap(['i'], 'pairs-backspce', onBackspace))
+  // tslint:disable-next-line: no-floating-promises
+  nvim.resumeNotification(false, true)
+}
+
+// remove paired characters when possible
+async function onBackspace(): Promise<void> {
+  let { nvim } = workspace
+  let res = await nvim.callAtomic([
+    ['nvim_get_current_line', []],
+    ['nvim_call_function', ['col', ['.']]],
+    ['nvim_eval', ['synIDattr(synID(line("."), col(".") - 2, 1), "name")']]
+  ])
+  if (res[1] == null) {
+    let [line, col, synname] = res[0] as [string, number, string]
+    if (col > 1 && !/string/i.test(synname)) {
+      let buf = Buffer.from(line, 'utf8')
+      if (col - 1 < buf.length) {
+        let pre = buf.slice(col - 2, col - 1).toString('utf8')
+        let next = buf.slice(col - 1, col).toString('utf8')
+        if (pairs.has(pre) && pairs.get(pre) == next) {
+          await nvim.eval(`feedkeys("\\<right>\\<bs>\\<bs>", 'in')`)
+          return
+        }
+      }
+    }
+  }
+  await nvim.eval(`feedkeys("\\<bs>", 'in')`)
+}
+
+export function byteSlice(content: string, start: number, end?: number): string {
+  let buf = Buffer.from(content, 'utf8')
+  return buf.slice(start, end).toString('utf8')
 }
