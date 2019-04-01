@@ -18,6 +18,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   if (enableBackspace) {
     let map = await workspace.nvim.call('maparg', ['<bs>', 'i']) as string
     if (map && !map.startsWith('coc#_insert_key')) enableBackspace = false
+    if (workspace.isVim) enableBackspace = false
   }
 
   if (characters.length == 0) return
