@@ -37,7 +37,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let pre = line.slice(0, pos.character)
     let rest = line.slice(pos.character)
     let isQuote = ["'", '"', '`'].indexOf(character) !== -1
-    if (character == '<' && pre[pre.length - 1] == ' ') {
+    if (character == '<' && (pre[pre.length - 1] == ' ' || pre[pre.length - 1] == '<')) {
       return character
     }
     if (isQuote && rest[0] == character && rest[1] != character) {
