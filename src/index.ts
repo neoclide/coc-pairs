@@ -42,7 +42,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }
     if (isQuote && rest[0] == character && rest[1] != character) {
       // move position
-      nvim.command(`call feedkeys("\\<Right>", 'in')`, true)
+      await nvim.eval(`feedkeys("\\<Right>", 'int')`)
       return ''
     }
     // Only pair single quotes if previous character is not word.
@@ -54,9 +54,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
       return character
     }
     if (character == '"') {
-      nvim.command(`call feedkeys('""'."\\<Left>", 'in')`, true)
+      nvim.command(`call feedkeys('""'."\\<Left>", 'int')`, true)
     } else {
-      nvim.command(`call feedkeys("${character}${pairs.get(character)}\\<Left>", 'in')`, true)
+      nvim.command(`call feedkeys("${character}${pairs.get(character)}\\<Left>", 'int')`, true)
     }
     return ''
   }
@@ -70,7 +70,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let line = doc.getline(pos.line)
     let rest = line.slice(pos.character)
     if (rest[0] == character) {
-      nvim.command(`call feedkeys("\\<Right>", 'in')`, true)
+      nvim.command(`call feedkeys("\\<Right>", 'int')`, true)
       return ''
     }
     return character
@@ -110,13 +110,13 @@ async function onBackspace(): Promise<void> {
         let pre = buf.slice(col - 2, col - 1).toString('utf8')
         let next = buf.slice(col - 1, col).toString('utf8')
         if (pairs.has(pre) && pairs.get(pre) == next) {
-          await nvim.eval(`feedkeys("\\<right>\\<bs>\\<bs>", 'in')`)
+          await nvim.eval(`feedkeys("\\<esc>ca${pre}", 'int')`)
           return
         }
       }
     }
   }
-  await nvim.eval(`feedkeys("\\<bs>", 'in')`)
+  await nvim.eval(`feedkeys("\\<bs>", 'int')`)
 }
 
 export function byteSlice(content: string, start: number, end?: number): string {
