@@ -30,7 +30,7 @@ In your vim/neovim, run command:
 
 - `pairs.disableLanguages`, list of language ids to disable this extension, default: `[]`.
 - `pairs.enableCharacters`, list of enabled characters, default: `` ["(", "[", "{", "<", "'", "\"", "`"] ``.
-- `paris.enableBackspace`, enable imap for backspce to remove paired characters,
+- `pairs.enableBackspace`, enable imap for backspce to remove paired characters,
   default: `true`, won't work when `<bs>` already mapped.
 
 To disable characters for specified filetype, you can use `b:coc_pairs_disabled`, ex:
