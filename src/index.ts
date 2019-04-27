@@ -120,13 +120,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
 // remove paired characters when possible
 async function onBackspace(): Promise<void> {
   let { nvim } = workspace
-  let res = await nvim.callAtomic([
-    ['nvim_get_current_line', []],
-    ['nvim_call_function', ['col', ['.']]],
-    ['nvim_eval', ['synIDattr(synID(line("."), col(".") - 2, 1), "name")']]
-  ])
-  if (res[1] == null) {
-    let [line, col, synname] = res[0] as [string, number, string]
+  let res = await nvim.eval('[getline(".")]+[col(".")]+[synID(line("."), col(".") - 2, 1), "name"]')
+  if (res) {
+    let [line, col, synname] = res as [string, number, string]
     if (col > 1 && !/string/i.test(synname)) {
       let buf = Buffer.from(line, 'utf8')
       if (col - 1 < buf.length) {
