@@ -38,7 +38,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let pre = line.slice(0, pos.character)
     let rest = line.slice(pos.character)
     if (rest && isWord(rest[0])) return character
-    if (samePair && pre && isWord(pre[pre.length - 1])) return character
     if (character == '<' && (pre[pre.length - 1] == ' ' || pre[pre.length - 1] == '<')) {
       return character
     }
@@ -47,6 +46,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       await nvim.eval(`feedkeys("\\<Right>", 'int')`)
       return ''
     }
+    if (samePair && pre && isWord(pre[pre.length - 1])) return character
     // Only pair single quotes if previous character is not word.
     if (character === "'" && pre.match(/.*\w$/)) {
       return character
