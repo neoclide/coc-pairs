@@ -131,7 +131,7 @@ async function onBackspace(): Promise<void> {
         let pre = buf.slice(col - 2, col - 1).toString('utf8')
         let next = buf.slice(col - 1, col).toString('utf8')
         if (pairs.has(pre) && pairs.get(pre) == next) {
-          await nvim.eval(`feedkeys("\\<esc>ca${pre}", 'int')`)
+          await nvim.eval(`feedkeys("\\<esc>ca${pre == '"' ? '\\"' : pre}", 'int')`)
           return
         }
       }
