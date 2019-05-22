@@ -52,7 +52,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
       return character
     }
     if (samePair && pre.length >= 2 && pre[pre.length - 1] == character && pre[pre.length - 2] == character) {
-      // allow triple quote
+      // type four times to insert triple-quotes pair
+      if (pre[pre.length - 3] == character) {
+        if (character == '"') {
+          nvim.command(`call feedkeys('"""'."${"\\<Left>".repeat(3)}", 'int')`, true)
+        } else {
+          nvim.command(`call feedkeys("${character.repeat(3)}${"\\<Left>".repeat(3)}", 'int')`, true)
+        }
+        return
+      }
+      // type three times to insert single triple-quotes
       return character
     }
     if (character == '"') {
