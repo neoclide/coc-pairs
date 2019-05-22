@@ -67,7 +67,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (character == '"') {
       nvim.command(`call feedkeys('""'."\\<Left>", 'int')`, true)
     } else {
-      nvim.command(`call feedkeys("${character}${pair}\\<Left>", 'int')`, true)
+      nvim.command(`call feedkeys("${character}${pair}${"\\<Left>".repeat(pair.length)}", 'int')`, true)
     }
     return ''
   }
