@@ -26,25 +26,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   async function insertPair(character: string, pair: string): Promise<string> {
     let samePair = character == pair
-    let arr = await nvim.eval(
-      '[bufnr("%"),get(b:,"coc_pairs_disabled",[]),coc#util#cursor()]'
-    )
+    let arr = await nvim.eval('[bufnr("%"),get(b:,"coc_pairs_disabled",[]),coc#util#cursor()]')
     let doc = workspace.getDocument(arr[0])
     if (!doc) return character
     let { filetype } = doc
     if (disableLanguages.indexOf(filetype) !== -1) return character
     let chars = arr[1]
-    if (chars && chars.length && chars.indexOf(character) !== -1)
-      return character
+    if (chars && chars.length && chars.indexOf(character) !== -1) return character
     let pos = { line: arr[2][0], character: arr[2][1] }
     let line = doc.getline(pos.line)
     let pre = line.slice(0, pos.character)
     let rest = line.slice(pos.character)
     if (rest && isWord(rest[0])) return character
-    if (
-      character == '<' &&
-      (pre[pre.length - 1] == ' ' || pre[pre.length - 1] == '<')
-    ) {
+    if (character == '<' && (pre[pre.length - 1] == ' ' || pre[pre.length - 1] == '<')) {
       return character
     }
     if (samePair && rest[0] == character && rest[1] != character) {
@@ -57,26 +51,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (character === "'" && pre.match(/.*\w$/)) {
       return character
     }
-    if (
-      samePair &&
-      pre.length >= 2 &&
-      pre[pre.length - 1] == character &&
-      pre[pre.length - 2] == character
-    ) {
+    if (samePair && pre.length >= 2 && pre[pre.length - 1] == character && pre[pre.length - 2] == character) {
       // type four times to insert triple-quotes pair
       if (pre[pre.length - 3] == character) {
         if (character == '"') {
-          nvim.command(
-            `call feedkeys('"""'."${'\\<Left>'.repeat(3)}", 'int')`,
-            true
-          )
+          nvim.command(`call feedkeys('"""'."${'\\<Left>'.repeat(3)}", 'int')`, true)
         } else {
-          nvim.command(
-            `call feedkeys("${character.repeat(3)}${'\\<Left>'.repeat(
-              3
-            )}", 'int')`,
-            true
-          )
+          nvim.command(`call feedkeys("${character.repeat(3)}${'\\<Left>'.repeat(3)}", 'int')`, true)
         }
         return
       }
@@ -86,12 +67,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (character == '"') {
       nvim.command(`call feedkeys('""'."\\<Left>", 'int')`, true)
     } else {
-      nvim.command(
-        `call feedkeys("${character}${pair}${'\\<Left>'.repeat(
-          pair.length
-        )}", 'int')`,
-        true
-      )
+      nvim.command(`call feedkeys("${character}${pair}${'\\<Left>'.repeat(pair.length)}", 'int')`, true)
     }
     return ''
   }
@@ -115,34 +91,18 @@ export async function activate(context: ExtensionContext): Promise<void> {
   for (let character of characters) {
     if (pairs.has(character)) {
       subscriptions.push(
-        workspace.registerExprKeymap(
-          'i',
-          character,
-          insertPair.bind(null, character, pairs.get(character)),
-          false
-        )
+        workspace.registerExprKeymap('i', character, insertPair.bind(null, character, pairs.get(character)), false)
       )
     }
     let matched = pairs.get(character)
     if (matched != character) {
-      subscriptions.push(
-        workspace.registerExprKeymap(
-          'i',
-          matched,
-          closePair.bind(null, matched),
-          false
-        )
-      )
+      subscriptions.push(workspace.registerExprKeymap('i', matched, closePair.bind(null, matched), false))
     }
   }
   if (enableBackspace) {
-    subscriptions.push(
-      workspace.registerExprKeymap('i', '<bs>', onBackspace, false)
-    )
+    subscriptions.push(workspace.registerExprKeymap('i', '<bs>', onBackspace, false))
   }
-  subscriptions.push(
-    workspace.registerKeymap(['i'], 'pairs-backspce', onBackspace)
-  )
+  subscriptions.push(workspace.registerKeymap(['i'], 'pairs-backspce', onBackspace))
   // tslint:disable-next-line: no-floating-promises
   nvim.resumeNotification(false, true)
 
@@ -156,22 +116,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (Array.isArray(p) && p.length == 2) {
         let [character, matched] = p
         subscriptions.push(
-          workspace.registerExprKeymap(
-            'i',
-            character,
-            insertPair.bind(null, character, matched),
-            false
-          )
+          workspace.registerExprKeymap('i', character, insertPair.bind(null, character, matched), false)
         )
         if (matched != character) {
-          subscriptions.push(
-            workspace.registerExprKeymap(
-              'i',
-              matched,
-              closePair.bind(null, matched),
-              false
-            )
-          )
+          subscriptions.push(workspace.registerExprKeymap('i', matched, closePair.bind(null, matched), false))
         }
       }
     }
@@ -187,9 +135,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 // remove paired characters when possible
 async function onBackspace(): Promise<void> {
   let { nvim } = workspace
-  let res = await nvim.eval(
-    '[getline("."),col("."),synIDattr(synID(line("."), col(".") - 2, 1), "name")]'
-  )
+  let res = await nvim.eval('[getline("."),col("."),synIDattr(synID(line("."), col(".") - 2, 1), "name")]')
   if (res) {
     let [line, col, synname] = res as [string, number, string]
     if (col > 1 && !/string/i.test(synname)) {
@@ -198,9 +144,7 @@ async function onBackspace(): Promise<void> {
         let pre = buf.slice(col - 2, col - 1).toString('utf8')
         let next = buf.slice(col - 1, col).toString('utf8')
         if (pairs.has(pre) && pairs.get(pre) == next) {
-          await nvim.eval(
-            `feedkeys("\\<esc>ca${pre == '"' ? '\\"' : pre}", 'int')`
-          )
+          await nvim.eval(`feedkeys("\\<esc>ca${pre == '"' ? '\\"' : pre}", 'int')`)
           return
         }
       }
@@ -209,11 +153,7 @@ async function onBackspace(): Promise<void> {
   await nvim.eval(`feedkeys("\\<bs>", 'int')`)
 }
 
-export function byteSlice(
-  content: string,
-  start: number,
-  end?: number
-): string {
+export function byteSlice(content: string, start: number, end?: number): string {
   let buf = Buffer.from(content, 'utf8')
   return buf.slice(start, end).toString('utf8')
 }
