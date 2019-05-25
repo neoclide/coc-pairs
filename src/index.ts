@@ -16,7 +16,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const characters = config.get<string[]>('enableCharacters')
   let enableBackspace = config.get<boolean>('enableBackspace')
   if (enableBackspace) {
-    let map = await workspace.nvim.call('maparg', ['<bs>', 'i']) as string
+    let map = (await workspace.nvim.call('maparg', ['<bs>', 'i'])) as string
     if (map && !map.startsWith('coc#_insert_key')) enableBackspace = false
     if (workspace.isVim) enableBackspace = false
   }
@@ -55,9 +55,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
       // type four times to insert triple-quotes pair
       if (pre[pre.length - 3] == character) {
         if (character == '"') {
-          nvim.command(`call feedkeys('"""'."${"\\<Left>".repeat(3)}", 'int')`, true)
+          nvim.command(`call feedkeys('"""'."${'\\<Left>'.repeat(3)}", 'int')`, true)
         } else {
-          nvim.command(`call feedkeys("${character.repeat(3)}${"\\<Left>".repeat(3)}", 'int')`, true)
+          nvim.command(`call feedkeys("${character.repeat(3)}${'\\<Left>'.repeat(3)}", 'int')`, true)
         }
         return
       }
@@ -67,7 +67,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (character == '"') {
       nvim.command(`call feedkeys('""'."\\<Left>", 'int')`, true)
     } else {
-      nvim.command(`call feedkeys("${character}${pair}${"\\<Left>".repeat(pair.length)}", 'int')`, true)
+      nvim.command(`call feedkeys("${character}${pair}${'\\<Left>'.repeat(pair.length)}", 'int')`, true)
     }
     return ''
   }
@@ -90,7 +90,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
   nvim.pauseNotification()
   for (let character of characters) {
     if (pairs.has(character)) {
-      subscriptions.push(workspace.registerExprKeymap('i', character, insertPair.bind(null, character, pairs.get(character)), false))
+      subscriptions.push(
+        workspace.registerExprKeymap('i', character, insertPair.bind(null, character, pairs.get(character)), false)
+      )
     }
     let matched = pairs.get(character)
     if (matched != character) {
@@ -106,14 +108,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   async function createBufferKeymap(bufnr: number): Promise<void> {
     let buf = nvim.createBuffer(bufnr)
-    let paires = await buf.getVar('coc_paires') as string[][]
-    if (!paires) return
+    let pairs = (await buf.getVar('coc_pairs')) as string[][]
+    if (!pairs) return
     if (workspace.bufnr != bufnr) return
     nvim.pauseNotification()
-    for (let p of paires) {
+    for (let p of pairs) {
       if (Array.isArray(p) && p.length == 2) {
         let [character, matched] = p
-        subscriptions.push(workspace.registerExprKeymap('i', character, insertPair.bind(null, character, matched), false))
+        subscriptions.push(
+          workspace.registerExprKeymap('i', character, insertPair.bind(null, character, matched), false)
+        )
         if (matched != character) {
           subscriptions.push(workspace.registerExprKeymap('i', matched, closePair.bind(null, matched), false))
         }
