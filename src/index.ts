@@ -18,7 +18,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   if (enableBackspace) {
     let map = (await workspace.nvim.call('maparg', ['<bs>', 'i'])) as string
     if (map && !map.startsWith('coc#_insert_key')) enableBackspace = false
-    if (workspace.isVim) enableBackspace = false
   }
 
   if (characters.length == 0) return
@@ -144,7 +143,11 @@ async function onBackspace(): Promise<void> {
         let pre = buf.slice(col - 2, col - 1).toString('utf8')
         let next = buf.slice(col - 1, col).toString('utf8')
         if (pairs.has(pre) && pairs.get(pre) == next) {
-          await nvim.eval(`feedkeys("\\<esc>ca${pre == '"' ? '\\"' : pre}", 'int')`)
+          if (workspace.isVim) {
+            await nvim.eval(`feedkeys("\\<right>\\<bs>\\<bs>", 'int')`)
+          } else {
+            await nvim.eval(`feedkeys("\\<esc>ca${pre == '"' ? '\\"' : pre}", 'int')`)
+          }
           return
         }
       }
