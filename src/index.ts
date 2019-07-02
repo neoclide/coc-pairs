@@ -42,7 +42,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }
     if (samePair && rest[0] == character && rest[1] != character) {
       // move position
-      await nvim.eval(`feedkeys("\\<Right>", 'int')`)
+      await nvim.eval(`feedkeys("\\<C-G>U\\<Right>", 'int')`)
       return ''
     }
     if (samePair && pre && isWord(pre[pre.length - 1])) return character
@@ -54,9 +54,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
       // type four times to insert triple-quotes pair
       if (pre[pre.length - 3] == character) {
         if (character == '"') {
-          nvim.command(`call feedkeys('"""'."${'\\<Left>'.repeat(3)}", 'int')`, true)
+          nvim.command(`call feedkeys('"""'."${'\\<C-G>U\\<Left>'.repeat(3)}", 'int')`, true)
         } else {
-          nvim.command(`call feedkeys("${character.repeat(3)}${'\\<Left>'.repeat(3)}", 'int')`, true)
+          nvim.command(`call feedkeys("${character.repeat(3)}${'\\<C-G>U\\<Left>'.repeat(3)}", 'int')`, true)
         }
         return
       }
@@ -64,9 +64,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
       return character
     }
     if (character == '"') {
-      nvim.command(`call feedkeys('""'."\\<Left>", 'int')`, true)
+      nvim.command(`call feedkeys('""'."\\<C-G>U\\<Left>", 'int')`, true)
     } else {
-      nvim.command(`call feedkeys("${character}${pair}${'\\<Left>'.repeat(pair.length)}", 'int')`, true)
+      nvim.command(`call feedkeys("${character}${pair}${'\\<C-G>U\\<Left>'.repeat(pair.length)}", 'int')`, true)
     }
     return ''
   }
@@ -80,7 +80,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let line = doc.getline(pos.line)
     let rest = line.slice(pos.character)
     if (rest[0] == character) {
-      nvim.command(`call feedkeys("\\<Right>", 'int')`, true)
+      nvim.command(`call feedkeys("\\<C-G>U\\<Right>", 'int')`, true)
       return ''
     }
     return character
@@ -101,7 +101,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   if (enableBackspace) {
     subscriptions.push(workspace.registerExprKeymap('i', '<bs>', onBackspace, false))
   }
-  subscriptions.push(workspace.registerKeymap(['i'], 'pairs-backspce', onBackspace))
   // tslint:disable-next-line: no-floating-promises
   nvim.resumeNotification(false, true)
 
@@ -143,11 +142,7 @@ async function onBackspace(): Promise<void> {
         let pre = buf.slice(col - 2, col - 1).toString('utf8')
         let next = buf.slice(col - 1, col).toString('utf8')
         if (pairs.has(pre) && pairs.get(pre) == next) {
-          if (workspace.isVim) {
-            await nvim.eval(`feedkeys("\\<right>\\<bs>\\<bs>", 'int')`)
-          } else {
-            await nvim.eval(`feedkeys("\\<esc>ca${pre == '"' ? '\\"' : pre}", 'int')`)
-          }
+          await nvim.eval(`feedkeys("\\<C-G>U\\<right>\\<bs>\\<bs>", 'int')`)
           return
         }
       }
