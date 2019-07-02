@@ -1,6 +1,6 @@
 {
   "name": "coc-pairs",
-  "version": "1.2.12",
+  "version": "1.2.13",
   "description": "Auto pair extension for coc.nvim",
   "main": "lib/index.js",
   "publisher": "chemzqm",
