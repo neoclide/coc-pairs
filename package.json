@@ -65,7 +65,7 @@
     "@chemzqm/tsconfig": "^0.0.3",
     "@chemzqm/tslint-config": "^1.0.18",
     "@types/node": "^11.11.7",
-    "coc.nvim": "^0.0.62",
+    "coc.nvim": "^0.0.71",
     "rimraf": "^2.6.3",
     "tslint": "^5.14.0",
     "typescript": "^3.3.4000"

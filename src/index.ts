@@ -1,4 +1,4 @@
-import { ExtensionContext, workspace } from 'coc.nvim'
+import { ExtensionContext, workspace, Document } from 'coc.nvim'
 
 const pairs: Map<string, string> = new Map()
 pairs.set('{', '}')
@@ -51,7 +51,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
       return character
     }
     if (samePair && pre.length >= 2 && pre[pre.length - 1] == character && pre[pre.length - 2] == character) {
-      // type four times to insert triple-quotes pair
       if (pre[pre.length - 3] == character) {
         if (character == '"') {
           nvim.command(`call feedkeys('"""'."${'\\<C-G>U\\<Left>'.repeat(3)}", 'int')`, true)
@@ -60,7 +59,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
         }
         return
       }
-      // type three times to insert single triple-quotes
       return character
     }
     if (character == '"') {
@@ -104,29 +102,28 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // tslint:disable-next-line: no-floating-promises
   nvim.resumeNotification(false, true)
 
-  async function createBufferKeymap(bufnr: number): Promise<void> {
-    let buf = nvim.createBuffer(bufnr)
-    let pairs = (await buf.getVar('coc_pairs')) as string[][]
+  async function createBufferKeymap(doc: Document): Promise<void> {
+    let pairs = doc.getVar<string[][]>('coc_pairs', null)
     if (!pairs) return
-    if (workspace.bufnr != bufnr) return
+    if (workspace.bufnr != doc.bufnr) return
     nvim.pauseNotification()
     for (let p of pairs) {
       if (Array.isArray(p) && p.length == 2) {
         let [character, matched] = p
         subscriptions.push(
-          workspace.registerExprKeymap('i', character, insertPair.bind(null, character, matched), false)
+          workspace.registerExprKeymap('i', character, insertPair.bind(null, character, matched), true)
         )
         if (matched != character) {
-          subscriptions.push(workspace.registerExprKeymap('i', matched, closePair.bind(null, matched), false))
+          subscriptions.push(workspace.registerExprKeymap('i', matched, closePair.bind(null, matched), true))
         }
       }
     }
     // tslint:disable-next-line: no-floating-promises
     nvim.resumeNotification(false, true)
   }
-  await createBufferKeymap(workspace.bufnr)
-  workspace.onDidOpenTextDocument(async () => {
-    await createBufferKeymap(workspace.bufnr)
+  await createBufferKeymap(workspace.getDocument(workspace.bufnr))
+  workspace.onDidOpenTextDocument(async e => {
+    await createBufferKeymap(workspace.getDocument(e.uri))
   })
 }
 
