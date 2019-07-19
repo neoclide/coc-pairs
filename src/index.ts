@@ -14,6 +14,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const config = workspace.getConfiguration('pairs')
   const disableLanguages = config.get<string[]>('disableLanguages')
   const characters = config.get<string[]>('enableCharacters')
+  const alwaysPairCharacters = config.get<string[]>('alwaysPairCharacters', [])
   let enableBackspace = config.get<boolean>('enableBackspace')
   if (enableBackspace) {
     let map = (await workspace.nvim.call('maparg', ['<bs>', 'i'])) as string
@@ -36,7 +37,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let line = doc.getline(pos.line)
     let pre = line.slice(0, pos.character)
     let rest = line.slice(pos.character)
-    if (rest && isWord(rest[0])) return character
+    if (alwaysPairCharacters.indexOf(character) == -1 && rest && isWord(rest[0])) return character
     if (character == '<' && (pre[pre.length - 1] == ' ' || pre[pre.length - 1] == '<')) {
       return character
     }
