@@ -7,6 +7,8 @@ simplified implementation to make auto pairs work like in VSCode.
 
 **Note** `b:coc_paires` have renamed to `b:coc_pairs`
 
+For enhanced `<CR>` experience, checkout `:h coc#on_enter()`.
+
 ## Tips
 
 - You should disable/remove other auto pair plugins for this extension work as expected.
