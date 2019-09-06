@@ -5,7 +5,7 @@ Auto pair extension for [coc.nvim](https://github.com/neoclide/coc.nvim).
 **Note** you can use other vim auto pairs plugins with coc.nvim, it's a
 simplified implementation to make auto pairs work like in VSCode.
 
-**Note** `b:coc_paires` have renamed to `b:coc_pairs`
+**Note** `b:coc_paires` have renamed to `b:pairs`
 
 For enhanced `<CR>` experience, checkout `:h coc#on_enter()`.
 
