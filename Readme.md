@@ -28,7 +28,7 @@ In vim/neovim, run this command:
 ## Features
 
 - Insert pair characters automatically.
-- Buffer local pairs, ex: `autocmd FileType tex let b:coc_pairs = [["$", "$"]]`
+- Buffer local pairs, ex: `autocmd FileType tex let b:pairs = [["$", "$"]]`
 
 ## Options
 
