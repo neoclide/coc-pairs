@@ -105,7 +105,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   async function createBufferKeymap(doc: Document): Promise<void> {
     if (!doc) return
-    let pairs = doc.getVar<string[][]>('coc_pairs', null)
+    let pairs = doc.getVar<string[][]>('pairs', null)
     if (!pairs) return
     if (workspace.bufnr != doc.bufnr) return
     nvim.pauseNotification()
