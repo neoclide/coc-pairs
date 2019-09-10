@@ -43,7 +43,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }
     if (samePair && rest[0] == character && rest[1] != character) {
       // move position
-      await nvim.eval(`feedkeys("\\<C-G>U\\<Right>", 'int')`)
+      await nvim.eval(`feedkeys("\\<C-G>U\\<Right>", 'in')`)
       return ''
     }
     if (samePair && pre && isWord(pre[pre.length - 1])) return character
@@ -54,18 +54,18 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (samePair && pre.length >= 2 && pre[pre.length - 1] == character && pre[pre.length - 2] == character) {
       if (pre[pre.length - 3] == character) {
         if (character == '"') {
-          nvim.command(`call feedkeys('"""'."${'\\<C-G>U\\<Left>'.repeat(3)}", 'int')`, true)
+          nvim.command(`call feedkeys('"""'."${'\\<C-G>U\\<Left>'.repeat(3)}", 'in')`, true)
         } else {
-          nvim.command(`call feedkeys("${character.repeat(3)}${'\\<C-G>U\\<Left>'.repeat(3)}", 'int')`, true)
+          nvim.command(`call feedkeys("${character.repeat(3)}${'\\<C-G>U\\<Left>'.repeat(3)}", 'in')`, true)
         }
         return
       }
       return character
     }
     if (character == '"') {
-      nvim.command(`call feedkeys('""'."\\<C-G>U\\<Left>", 'int')`, true)
+      nvim.command(`call feedkeys('""'."\\<C-G>U\\<Left>", 'in')`, true)
     } else {
-      nvim.command(`call feedkeys("${character}${pair}${'\\<C-G>U\\<Left>'.repeat(pair.length)}", 'int')`, true)
+      nvim.command(`call feedkeys("${character}${pair}${'\\<C-G>U\\<Left>'.repeat(pair.length)}", 'in')`, true)
     }
     return ''
   }
@@ -79,7 +79,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let line = doc.getline(pos.line)
     let rest = line.slice(pos.character)
     if (rest[0] == character) {
-      nvim.command(`call feedkeys("\\<C-G>U\\<Right>", 'int')`, true)
+      nvim.command(`call feedkeys("\\<C-G>U\\<Right>", 'in')`, true)
       return ''
     }
     return character
@@ -141,13 +141,13 @@ async function onBackspace(): Promise<void> {
         let pre = buf.slice(col - 2, col - 1).toString('utf8')
         let next = buf.slice(col - 1, col).toString('utf8')
         if (pairs.has(pre) && pairs.get(pre) == next) {
-          await nvim.eval(`feedkeys("\\<C-G>U\\<right>\\<bs>\\<bs>", 'int')`)
+          await nvim.eval(`feedkeys("\\<C-G>U\\<right>\\<bs>\\<bs>", 'in')`)
           return
         }
       }
     }
   }
-  await nvim.eval(`feedkeys("\\<bs>", 'int')`)
+  await nvim.eval(`feedkeys("\\<bs>", 'in')`)
 }
 
 export function byteSlice(content: string, start: number, end?: number): string {
