@@ -51,6 +51,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (character === "'" && pre.match(/.*\w$/)) {
       return character
     }
+    // Rust: don't pair single quotes that are part of lifetime annotations Foo::<'a>
+    if (filetype === 'rust' && character === "'" && pre.endsWith('<')) {
+      return character
+    }
     if (samePair && pre.length >= 2 && pre[pre.length - 1] == character && pre[pre.length - 2] == character) {
       if (pre[pre.length - 3] == character) {
         if (character == '"') {
