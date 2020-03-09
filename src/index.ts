@@ -37,8 +37,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let line = doc.getline(pos.line)
     let pre = line.slice(0, pos.character)
     let rest = line.slice(pos.character)
+    let previous = pre.length ? pre[pre.length - 1] : ''
     if (alwaysPairCharacters.indexOf(character) == -1 && rest && isWord(rest[0])) return character
-    if (character == '<' && (pre[pre.length - 1] == ' ' || pre[pre.length - 1] == '<')) {
+    if (character == '<' && (previous == ' ' || previous == '<')) {
       return character
     }
     if (samePair && rest[0] == character && rest[1] != character) {
@@ -46,7 +47,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       await nvim.eval(`feedkeys("\\<C-G>U\\<Right>", 'in')`)
       return ''
     }
-    if (samePair && pre && isWord(pre[pre.length - 1])) return character
+    if (samePair && pre && (isWord(previous) || previous == character)) return character
     // Only pair single quotes if previous character is not word.
     if (character === "'" && pre.match(/.*\w$/)) {
       return character
@@ -58,7 +59,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if ((filetype === 'vim' || filetype === 'help') && character === '"' && pos.character === 0) {
       return character
     }
-    if (samePair && pre.length >= 2 && pre[pre.length - 1] == character && pre[pre.length - 2] == character) {
+    if (samePair && pre.length >= 2 && previous == character && pre[pre.length - 2] == character) {
       if (pre[pre.length - 3] == character) {
         if (character == '"') {
           nvim.command(`call feedkeys('"""'."${'\\<C-G>U\\<Left>'.repeat(3)}", 'in')`, true)
