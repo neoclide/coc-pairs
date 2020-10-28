@@ -37,7 +37,7 @@ In vim/neovim, run this command:
 - `pairs.enableBackspace`, enable imap for backspace to remove paired characters,
   default: `true`, won't work when `<bs>` is already mapped.
 
-To disable characters for a specified filetype, you can use `b:coc_pairs_disabled`, ex:
+To disable characters for a specified filetypes, you can use `b:coc_pairs_disabled`, ex:
 
     autocmd FileType markdown let b:coc_pairs_disabled = ['`']
 
