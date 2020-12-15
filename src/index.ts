@@ -1,4 +1,4 @@
-import { ExtensionContext, workspace, Document } from 'coc.nvim'
+import { Document, ExtensionContext, window, workspace } from 'coc.nvim'
 
 const pairs: Map<string, string> = new Map()
 pairs.set('{', '}')
@@ -86,7 +86,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let doc = workspace.getDocument(bufnr)
     if (!doc) return character
     if (disableLanguages.indexOf(doc.filetype) !== -1) return character
-    let pos = await workspace.getCursorPosition()
+    let pos = await window.getCursorPosition()
     let line = doc.getline(pos.line)
     let rest = line.slice(pos.character)
     if (rest[0] == character) {
@@ -141,7 +141,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 }
 
 // remove paired characters when possible
-async function onBackspace(): Promise<void> {
+async function onBackspace(): Promise<string> {
   let { nvim } = workspace
   let res = await nvim.eval('[getline("."),col("."),synIDattr(synID(line("."), col(".") - 2, 1), "name")]')
   if (res) {
@@ -159,6 +159,7 @@ async function onBackspace(): Promise<void> {
     }
   }
   await nvim.eval(`feedkeys("\\<bs>", 'in')`)
+  return ''
 }
 
 export function byteSlice(content: string, start: number, end?: number): string {
@@ -169,7 +170,7 @@ export function byteSlice(content: string, start: number, end?: number): string 
 export function wait(ms: number): Promise<any> {
   return new Promise(resolve => {
     setTimeout(() => {
-      resolve()
+      resolve(undefined)
     }, ms)
   })
 }
