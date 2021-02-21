@@ -109,7 +109,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }
   }
   if (enableBackspace) {
-    subscriptions.push(workspace.registerExprKeymap('i', '<bs>', onBackspace, false))
+    subscriptions.push(
+      workspace.registerExprKeymap('i', '<bs>', onBackspace, false),
+      workspace.registerExprKeymap('i', '<c-h>', onBackspace, false)
+    )
   }
   // tslint:disable-next-line: no-floating-promises
   nvim.resumeNotification(false, true)
