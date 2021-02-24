@@ -1,4 +1,4 @@
-import { Document, ExtensionContext, window, workspace } from 'coc.nvim'
+import { Document, ExtensionContext, workspace } from 'coc.nvim'
 
 const pairs: Map<string, string> = new Map()
 pairs.set('{', '}')
@@ -26,15 +26,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   async function insertPair(character: string, pair: string): Promise<string> {
     let samePair = character == pair
-    let arr = await nvim.eval('[bufnr("%"),get(b:,"coc_pairs_disabled",[]),coc#util#cursor()]')
-    let doc = workspace.getDocument(arr[0])
-    if (!doc) return character
-    let { filetype } = doc
+    let arr = await nvim.eval('[bufnr("%"),get(b:,"coc_pairs_disabled",[]),coc#util#cursor(),&filetype,getline(".")]')
+    let filetype = arr[3]
     if (disableLanguages.indexOf(filetype) !== -1) return character
+    let line = arr[4]
     let chars = arr[1]
     if (chars && chars.length && chars.indexOf(character) !== -1) return character
     let pos = { line: arr[2][0], character: arr[2][1] }
-    let line = doc.getline(pos.line)
     let pre = line.slice(0, pos.character)
     let rest = line.slice(pos.character)
     let previous = pre.length ? pre[pre.length - 1] : ''
@@ -82,13 +80,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
   }
 
   async function closePair(character: string): Promise<string> {
-    let bufnr = await nvim.call('bufnr', '%')
-    let doc = workspace.getDocument(bufnr)
-    if (!doc) return character
-    if (disableLanguages.indexOf(doc.filetype) !== -1) return character
-    let pos = await window.getCursorPosition()
-    let line = doc.getline(pos.line)
-    let rest = line.slice(pos.character)
+    let [cursor, filetype, line] = await nvim.eval('[coc#util#cursor(),&filetype,getline(".")]') as any
+    if (disableLanguages.indexOf(filetype) !== -1) return character
+    let rest = line.slice(cursor[1])
     if (rest[0] == character) {
       nvim.command(`call feedkeys("\\<C-G>U\\<Right>", 'in')`, true)
       return ''
