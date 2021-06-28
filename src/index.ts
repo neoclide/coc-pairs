@@ -26,13 +26,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   async function insertPair(character: string, pair: string): Promise<string> {
     let samePair = character == pair
-    let arr = await nvim.eval('[bufnr("%"),get(b:,"coc_pairs_disabled",[]),coc#util#cursor(),&filetype,getline("."),mode()]')
+    let arr = await nvim.eval(`[bufnr("%"),get(b:,"coc_pairs_disabled",[]),coc#util#cursor(),&filetype,getline("."),mode(),get(get(g:,'context_filetype#filetypes',{}),&filetype,v:null)]`)
     let filetype = arr[3]
     if (disableLanguages.indexOf(filetype) !== -1) return character
     let line = arr[4]
     let mode = arr[5]
     if (mode.startsWith('R')) return character
     let chars = arr[1]
+    let context = arr[6]
     if (chars && chars.length && chars.indexOf(character) !== -1) return character
     let pos = { line: arr[2][0], character: arr[2][1] }
     let pre = line.slice(0, pos.character)
@@ -51,6 +52,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
     // Only pair single quotes if previous character is not word.
     if (character === "'" && pre.match(/.*\w$/)) {
       return character
+    }
+    if (context) {
+      let res = await nvim.call('context_filetype#get') as { filetype: string }
+      if (res && res.filetype) {
+        filetype = res.filetype
+      }
     }
     // Rust: don't pair single quotes that are part of lifetime annotations such as `Foo::<'a, 'b>` or `bar: &'a str`
     if (
