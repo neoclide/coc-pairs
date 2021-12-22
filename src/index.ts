@@ -23,6 +23,34 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   if (characters.length == 0) return
   const { nvim } = workspace
+  const localParis: Map<number, [string, string][]> = new Map()
+
+  // remove paired characters when possible
+  async function onBackspace(): Promise<string> {
+    let { nvim } = workspace
+    let res = await nvim.eval('[getline("."),col("."),synIDattr(synID(line("."), col(".") - 2, 1), "name"),bufnr("%")]')
+    if (res) {
+      let [line, col, synname, bufnr] = res as [string, number, string, number]
+      if (col > 1 && !/string/i.test(synname)) {
+        let buf = Buffer.from(line, 'utf8')
+        if (col - 1 < buf.length) {
+          let pre = buf.slice(col - 2, col - 1).toString('utf8')
+          let next = buf.slice(col - 1, col).toString('utf8')
+          let local = localParis.get(bufnr)
+          if (local && local.find(arr => arr[0] == pre && arr[1] == next)) {
+            await nvim.eval(`feedkeys("\\<C-G>U\\<right>\\<bs>\\<bs>", 'in')`)
+            return
+          }
+          if (characters.includes(pre) && pairs.get(pre) == next) {
+            await nvim.eval(`feedkeys("\\<C-G>U\\<right>\\<bs>\\<bs>", 'in')`)
+            return
+          }
+        }
+      }
+    }
+    await nvim.eval(`feedkeys("\\<bs>", 'in')`)
+    return ''
+  }
 
   async function insertPair(character: string, pair: string): Promise<string> {
     let samePair = character == pair
@@ -119,9 +147,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   async function createBufferKeymap(doc: Document): Promise<void> {
     if (!doc) return
-    let pairs = doc.getVar<string[][]>('pairs', null)
-    if (!pairs) return
-    if (workspace.bufnr != doc.bufnr) return
+    let pairs = doc.getVar<[string, string][]>('pairs', null)
+    if (!pairs || !pairs.length) return
+    localParis.set(doc.bufnr, pairs)
     nvim.pauseNotification()
     for (let p of pairs) {
       if (Array.isArray(p) && p.length == 2) {
@@ -137,32 +165,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
     // tslint:disable-next-line: no-floating-promises
     nvim.resumeNotification(false, true)
   }
-  await createBufferKeymap(workspace.getDocument(workspace.bufnr))
+  const buf = await workspace.nvim.buffer
+  await createBufferKeymap(workspace.getDocument(buf.id))
   workspace.onDidOpenTextDocument(async e => {
     await createBufferKeymap(workspace.getDocument(e.uri))
   })
-}
-
-// remove paired characters when possible
-async function onBackspace(): Promise<string> {
-  let { nvim } = workspace
-  let res = await nvim.eval('[getline("."),col("."),synIDattr(synID(line("."), col(".") - 2, 1), "name")]')
-  if (res) {
-    let [line, col, synname] = res as [string, number, string]
-    if (col > 1 && !/string/i.test(synname)) {
-      let buf = Buffer.from(line, 'utf8')
-      if (col - 1 < buf.length) {
-        let pre = buf.slice(col - 2, col - 1).toString('utf8')
-        let next = buf.slice(col - 1, col).toString('utf8')
-        if (pairs.has(pre) && pairs.get(pre) == next) {
-          await nvim.eval(`feedkeys("\\<C-G>U\\<right>\\<bs>\\<bs>", 'in')`)
-          return
-        }
-      }
-    }
-  }
-  await nvim.eval(`feedkeys("\\<bs>", 'in')`)
-  return ''
 }
 
 export function byteSlice(content: string, start: number, end?: number): string {
