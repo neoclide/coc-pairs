@@ -82,9 +82,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
       return character
     }
     if (context) {
-      let res = await nvim.call('context_filetype#get') as { filetype: string }
-      if (res && res.filetype) {
-        filetype = res.filetype
+      try {
+        let res = await nvim.call('context_filetype#get') as { filetype: string }
+        if (res && res.filetype) {
+          filetype = res.filetype
+        }
+      } catch (e) {
+        // ignore error
       }
     }
     // Rust: don't pair single quotes that are part of lifetime annotations such as `Foo::<'a, 'b>` or `bar: &'a str`
