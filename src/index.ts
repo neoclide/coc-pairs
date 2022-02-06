@@ -22,7 +22,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   }
 
   if (characters.length == 0) return
-  const { nvim } = workspace
+  const { nvim, isVim } = workspace
   const localParis: Map<number, [string, string][]> = new Map()
 
   // remove paired characters when possible
@@ -39,16 +39,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
           let local = localParis.get(bufnr)
           if (local && local.find(arr => arr[0] == pre && arr[1] == next)) {
             await nvim.eval(`feedkeys("\\<C-G>U\\<right>\\<bs>\\<bs>", 'in')`)
+            if (isVim) nvim.command('redraw', true)
             return
           }
           if (characters.includes(pre) && pairs.get(pre) == next) {
             await nvim.eval(`feedkeys("\\<C-G>U\\<right>\\<bs>\\<bs>", 'in')`)
+            if (isVim) nvim.command('redraw', true)
             return
           }
         }
       }
     }
     await nvim.eval(`feedkeys("\\<bs>", 'in')`)
+    if (isVim) nvim.command('redraw', true)
     return ''
   }
 
