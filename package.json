@@ -33,10 +33,12 @@
             "type": "string"
           },
           "default": [],
+          "scope": "application",
           "description": "A list of languages IDs to disable this extension on"
         },
         "pairs.enableCharacters": {
           "type": "array",
+          "scope": "application",
           "items": {
             "type": "string"
           },
@@ -53,6 +55,7 @@
         },
         "pairs.alwaysPairCharacters": {
           "type": "array",
+          "scope": "application",
           "items": {
             "type": "string"
           },
@@ -61,6 +64,7 @@
         },
         "pairs.enableBackspace": {
           "type": "boolean",
+          "scope": "application",
           "description": "Remap your backspce to delete paired characters when necessary, won't work when <bs> already mapped.",
           "default": true
         }

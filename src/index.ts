@@ -1,4 +1,4 @@
-import { Document, ExtensionContext, workspace } from 'coc.nvim'
+import { Document, ExtensionContext, Position, workspace, events } from 'coc.nvim'
 
 const pairs: Map<string, string> = new Map()
 pairs.set('{', '}')
@@ -8,6 +8,39 @@ pairs.set('<', '>')
 pairs.set('"', '"')
 pairs.set("'", "'")
 pairs.set('`', '`')
+
+// move out buffer, move out current line or before character, insert leave
+interface PairInsert {
+  inserted: string
+  paired: string
+  position: Position
+}
+
+interface InsertState {
+  bufnr: number
+  lnum: number
+  pairs: PairInsert[]
+}
+
+const insertMaps: Map<number, InsertState> = new Map()
+
+// let currentInsert: InsertState | undefined
+function removeLast(bufnr: number): void {
+  let insert = insertMaps.get(bufnr)
+  if (!insert) return
+  insert.pairs.pop()
+  if (insert.pairs.length == 0) {
+    insertMaps.delete(bufnr)
+  }
+}
+
+function shouldRemove(insert: InsertState | undefined, index: number): boolean {
+  if (!insert) return false
+  let { pairs } = insert
+  let last = pairs[pairs.length - 1]
+  if (!last) return false
+  return last.position.character + last.inserted.length === index
+}
 
 export async function activate(context: ExtensionContext): Promise<void> {
   let { subscriptions } = context
@@ -20,8 +53,33 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let map = (await workspace.nvim.call('maparg', ['<bs>', 'i'])) as string
     if (map && !map.startsWith('coc#_insert_key')) enableBackspace = false
   }
-
   if (characters.length == 0) return
+
+  subscriptions.push(events.on('BufUnload', bufnr => {
+    insertMaps.delete(bufnr)
+  }))
+  subscriptions.push(events.on('InsertLeave', bufnr => {
+    insertMaps.delete(bufnr)
+  }))
+  subscriptions.push(events.on('CursorMovedI', (bufnr, cursor) => {
+    let currentInsert = insertMaps.get(bufnr)
+    if (!currentInsert) return
+    if (currentInsert.bufnr != bufnr || currentInsert.lnum !== cursor[0]) {
+      insertMaps.delete(bufnr)
+      return
+    }
+    let { pairs } = currentInsert
+    let doc = workspace.getDocument(bufnr)
+    if (!doc || !doc.attached) return
+    let line = doc.getline(cursor[0] - 1)
+    let index = characterIndex(line, cursor[1] - 1)
+    let last = pairs[pairs.length - 1]
+    // move before insert position
+    if (!last || last.position.character > index) {
+      insertMaps.delete(bufnr)
+    }
+  }))
+
   const { nvim, isVim } = workspace
   const localParis: Map<number, [string, string][]> = new Map()
 
@@ -42,7 +100,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
             if (isVim) nvim.command('redraw', true)
             return
           }
-          if (characters.includes(pre) && pairs.get(pre) == next) {
+          let idx = characterIndex(line, col - 1)
+          let currentInsert = insertMaps.get(bufnr)
+          if (shouldRemove(currentInsert, idx) && characters.includes(pre) && pairs.get(pre) == next) {
+            removeLast(bufnr)
             await nvim.eval(`feedkeys("\\<C-G>U\\<right>\\<bs>\\<bs>", 'in')`)
             if (isVim) nvim.command('redraw', true)
             return
@@ -58,8 +119,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
   async function insertPair(character: string, pair: string): Promise<string> {
     let samePair = character == pair
     let arr = await nvim.eval(`[bufnr("%"),get(b:,"coc_pairs_disabled",[]),coc#util#cursor(),&filetype,getline("."),mode(),get(get(g:,'context_filetype#filetypes',{}),&filetype,v:null)]`)
-    let filetype = arr[3]
+    let filetype = arr[3] as string
     if (disableLanguages.indexOf(filetype) !== -1) return character
+    let bufnr = arr[0] as number
     let line = arr[4]
     let mode = arr[5]
     if (mode.startsWith('R')) return character
@@ -67,10 +129,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let context = arr[6]
     if (chars && chars.length && chars.indexOf(character) !== -1) return character
     let pos = { line: arr[2][0], character: arr[2][1] }
+    let currentInsert = insertMaps.get(bufnr)
+    if (currentInsert && currentInsert.lnum != pos.line + 1) {
+      currentInsert = undefined
+    }
+
     let pre = line.slice(0, pos.character)
     let rest = line.slice(pos.character)
     let previous = pre.length ? pre[pre.length - 1] : ''
-    if (alwaysPairCharacters.indexOf(character) == -1 && rest && isWord(rest[0])) return character
+    if (alwaysPairCharacters.indexOf(character) == -1 && rest && isWord(rest[0], bufnr)) return character
     if (character == '<' && (previous == ' ' || previous == '<')) {
       return character
     }
@@ -79,7 +146,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       await nvim.eval(`feedkeys("\\<C-G>U\\<Right>", 'in')`)
       return ''
     }
-    if (samePair && pre && (isWord(previous) || previous == character)) return character
+    if (samePair && pre && (isWord(previous, bufnr) || previous == character)) return character
     // Only pair single quotes if previous character is not word.
     if (character === "'" && pre.match(/.*\w$/)) {
       return character
@@ -118,20 +185,41 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (character == '"') {
       nvim.command(`call feedkeys('""'."\\<C-G>U\\<Left>", 'in')`, true)
     } else {
+      if (!currentInsert) currentInsert = {
+        bufnr,
+        lnum: pos.line + 1,
+        pairs: []
+      }
+      currentInsert.pairs.push({ inserted: character, paired: pair, position: pos })
+      insertMaps.set(bufnr, currentInsert)
       nvim.command(`call feedkeys("${character}${pair}${'\\<C-G>U\\<Left>'.repeat(pair.length)}", 'in')`, true)
     }
     return ''
   }
 
   async function closePair(character: string): Promise<string> {
-    let [cursor, filetype, line] = await nvim.eval('[coc#util#cursor(),&filetype,getline(".")]') as any
-    if (disableLanguages.indexOf(filetype) !== -1) return character
+    // should not move right when cursor move out
+    let [bufnr, cursor, filetype, line] = await nvim.eval('[bufnr("%"),coc#util#cursor(),&filetype,getline(".")]') as any
     let rest = line.slice(cursor[1])
-    if (rest[0] == character) {
-      nvim.command(`call feedkeys("\\<C-G>U\\<Right>", 'in')`, true)
-      return ''
+    let currentInsert = insertMaps.get(bufnr)
+    if (!currentInsert || rest[0] !== character || disableLanguages.includes(filetype)) return character
+    let item = currentInsert.pairs.find(o => o.paired === character)
+    if (!item) return character
+
+    let prev = item.inserted
+    if (prev !== character) {
+      let n = 0
+      for (let i = 0; i < line.length; i++) {
+        if (line[i] === prev) {
+          n++
+        } else if (line[i] === character) {
+          n--
+        }
+      }
+      if (n > 0) return character
     }
-    return character
+    nvim.command(`call feedkeys("\\<C-G>U\\<Right>", 'in')`, true)
+    return ''
   }
 
   nvim.pauseNotification()
@@ -192,7 +280,9 @@ export function wait(ms: number): Promise<any> {
   })
 }
 
-export function isWord(character: string): boolean {
+function isWord(character: string, bufnr: number): boolean {
+  let doc = workspace.getDocument(bufnr)
+  if (doc && doc.attached) return doc.isWord(character)
   let code = character.charCodeAt(0)
   if (code > 128) return false
   if (code == 95) return true
@@ -200,4 +290,33 @@ export function isWord(character: string): boolean {
   if (code >= 65 && code <= 90) return true
   if (code >= 97 && code <= 122) return true
   return false
+}
+
+const UTF8_2BYTES_START = 0x80
+const UTF8_3BYTES_START = 0x800
+const UTF8_4BYTES_START = 65536
+
+function characterIndex(content: string, byteIndex: number): number {
+  if (byteIndex == 0) return 0
+  let characterIndex = 0
+  let total = 0
+  for (let codePoint of content) {
+    let code = codePoint.codePointAt(0)
+    if (code >= UTF8_4BYTES_START) {
+      characterIndex += 2
+      total += 4
+    } else {
+      characterIndex += 1
+      total += utf8_code2len(code)
+    }
+    if (total >= byteIndex) break
+  }
+  return characterIndex
+}
+
+function utf8_code2len(code: number): number {
+  if (code < UTF8_2BYTES_START) return 1
+  if (code < UTF8_3BYTES_START) return 2
+  if (code < UTF8_4BYTES_START) return 3
+  return 4
 }
