@@ -1,4 +1,4 @@
-import { Document, ExtensionContext, Position, workspace, events } from 'coc.nvim'
+import { Document, events, ExtensionContext, Position, workspace } from 'coc.nvim'
 
 const pairs: Map<string, string> = new Map()
 pairs.set('{', '}')
@@ -46,14 +46,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
   let { subscriptions } = context
   const config = workspace.getConfiguration('pairs')
   const disableLanguages = config.get<string[]>('disableLanguages')
-  const characters = config.get<string[]>('enableCharacters')
+  const characters = config.get<string[]>('enableCharacters', [])
   const alwaysPairCharacters = config.get<string[]>('alwaysPairCharacters', [])
-  let enableBackspace = config.get<boolean>('enableBackspace')
-  if (enableBackspace) {
-    let map = (await workspace.nvim.call('maparg', ['<bs>', 'i'])) as string
-    if (map && !map.startsWith('coc#_insert_key')) enableBackspace = false
-  }
-  if (characters.length == 0) return
+  let enableBackspace = config.get<boolean>('enableBackspace', true)
 
   subscriptions.push(events.on('BufUnload', bufnr => {
     insertMaps.delete(bufnr)
@@ -260,8 +255,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     // tslint:disable-next-line: no-floating-promises
     nvim.resumeNotification(false, true)
   }
-  const buf = await workspace.nvim.buffer
-  await createBufferKeymap(workspace.getDocument(buf.id))
+  void createBufferKeymap(workspace.getDocument(workspace.bufnr))
   workspace.onDidOpenTextDocument(async e => {
     await createBufferKeymap(workspace.getDocument(e.uri))
   })
