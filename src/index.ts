@@ -117,8 +117,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let filetype = arr[3] as string
     if (disableLanguages.indexOf(filetype) !== -1) return character
     let bufnr = arr[0] as number
-    let line = arr[4]
-    let mode = arr[5]
+    let line = arr[4] as string
+    let mode = arr[5] as string
     if (mode.startsWith('R')) return character
     let chars = arr[1]
     let context = arr[6]
@@ -230,9 +230,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }
   }
   if (enableBackspace) {
-    subscriptions.push(workspace.registerExprKeymap('i', '<bs>', onBackspace, false))
+    subscriptions.push(workspace.registerExprKeymap('i', '<bs>', onBackspace, false, false))
   }
-  // tslint:disable-next-line: no-floating-promises
   nvim.resumeNotification(false, true)
 
   async function createBufferKeymap(doc: Document): Promise<void> {
@@ -252,7 +251,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
         }
       }
     }
-    // tslint:disable-next-line: no-floating-promises
     nvim.resumeNotification(false, true)
   }
   void createBufferKeymap(workspace.getDocument(workspace.bufnr))
