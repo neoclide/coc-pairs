@@ -180,15 +180,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (character == '"') {
       nvim.command(`call feedkeys('""'."\\<C-G>U\\<Left>", 'in')`, true)
     } else {
-      if (!currentInsert) currentInsert = {
-        bufnr,
-        lnum: pos.line + 1,
-        pairs: []
-      }
-      currentInsert.pairs.push({ inserted: character, paired: pair, position: pos })
-      insertMaps.set(bufnr, currentInsert)
       nvim.command(`call feedkeys("${character}${pair}${'\\<C-G>U\\<Left>'.repeat(pair.length)}", 'in')`, true)
     }
+    if (!currentInsert) currentInsert = { bufnr, lnum: pos.line + 1, pairs: [] }
+    currentInsert.pairs.push({ inserted: character, paired: pair, position: pos })
+    insertMaps.set(bufnr, currentInsert)
     return ''
   }
 
