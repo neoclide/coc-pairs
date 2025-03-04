@@ -33,8 +33,9 @@ In vim/neovim, run this command:
 ## Options
 
 - `pairs.disableLanguages`: A list of languages IDs to disable this extension on  Default: `[]`
-- `pairs.disableBuftypes`: A list of buftypes disable this extension on  Default: `[]`
-- `pairs.enableCharacters`: Enabled character list for keymap.  Default: `["(","[","{","<","'","\"","`","【","「","《"]`
+- `pairs.disableBuftypes`: A list of buftypes to disable this extension on  Default: `[]`
+- `pairs.enableCharacters`: Enabled character list for keymap.  Default: `["(","[","{","<","'","\"","`","【","「","《","『"]`
+- `pairs.requireEOLCharacters`: Characters should be only paired at end of line.  Default: `[]`
 - `pairs.alwaysPairCharacters`: Characters that should be paired without check for next character.  Default: `[]`
 - `pairs.enableBackspace`: Remap your backspce to delete paired characters when necessary, won't work when <bs> already mapped.  Default: `true`
 

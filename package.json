@@ -66,6 +66,15 @@
           ],
           "description": "Enabled character list for keymap."
         },
+        "pairs.requireEOLCharacters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "application",
+          "description": "Characters should be only paired at end of line."
+        },
         "pairs.alwaysPairCharacters": {
           "type": "array",
           "scope": "application",

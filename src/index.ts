@@ -55,6 +55,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const alwaysPairCharacters = config.inspect<string[]>('alwaysPairCharacters').globalValue ?? []
   const enableBackspace = config.inspect<boolean>('enableBackspace').globalValue ?? true
   const disableBuftypes = config.inspect<string[]>('disableBuftypes').globalValue ?? []
+  const eolCharacters = config.inspect<string[]>('requireEOLCharacters').globalValue ?? []
 
   subscriptions.push(events.on('BufUnload', bufnr => {
     insertMaps.delete(bufnr)
@@ -132,6 +133,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let context = arr[6]
     if (chars && chars.length && chars.indexOf(character) !== -1) return character
     let pos = { line: arr[2][0], character: arr[2][1] }
+    if (eolCharacters.includes(character) && line.length !== pos.character) return character
     let currentInsert = insertMaps.get(bufnr)
     if (currentInsert && currentInsert.lnum != pos.line + 1) {
       currentInsert = undefined
