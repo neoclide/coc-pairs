@@ -4,6 +4,7 @@
     "declaration": false,
     "outDir": "lib",
     "target": "es2017",
+    "noEmit": true,
     "module": "commonjs",
     "moduleResolution": "node",
     "lib": ["es2018"],
