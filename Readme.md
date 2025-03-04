@@ -32,10 +32,11 @@ In vim/neovim, run this command:
 
 ## Options
 
-- `pairs.disableLanguages`, list of language ids to disable this extension, default: `[]`.
-- `pairs.enableCharacters`, list of enabled characters, default: `` ["(", "[", "{", "<", "'", "\"", "`"] ``.
-- `pairs.enableBackspace`, enable imap for backspace to remove paired characters,
-  default: `true`, won't work when `<bs>` is already mapped.
+- `pairs.disableLanguages`: A list of languages IDs to disable this extension on  Default: `[]`
+- `pairs.disableBuftypes`: A list of buftypes disable this extension on  Default: `[]`
+- `pairs.enableCharacters`: Enabled character list for keymap.  Default: `["(","[","{","<","'","\"","`","【","「","《"]`
+- `pairs.alwaysPairCharacters`: Characters that should be paired without check for next character.  Default: `[]`
+- `pairs.enableBackspace`: Remap your backspce to delete paired characters when necessary, won't work when <bs> already mapped.  Default: `true`
 
 To disable characters for a specified filetypes, you can use `b:coc_pairs_disabled`, ex:
 

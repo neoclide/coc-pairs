@@ -36,6 +36,15 @@
           "scope": "application",
           "description": "A list of languages IDs to disable this extension on"
         },
+        "pairs.disableBuftypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "scope": "application",
+          "description": "A list of buftypes to disable this extension on"
+        },
         "pairs.enableCharacters": {
           "type": "array",
           "scope": "application",
@@ -49,7 +58,10 @@
             "<",
             "'",
             "\"",
-            "`"
+            "`",
+            "【",
+            "「",
+            "《"
           ],
           "description": "Enabled character list for keymap."
         },
