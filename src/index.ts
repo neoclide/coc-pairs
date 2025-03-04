@@ -88,9 +88,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
   subscriptions.push(events.on('BufUnload', bufnr => {
     insertMaps.delete(bufnr)
   }))
-  subscriptions.push(events.on('InsertLeave', bufnr => {
-    insertMaps.delete(bufnr)
-  }))
+  // subscriptions.push(events.on('InsertLeave', bufnr => {
+  //   insertMaps.delete(bufnr)
+  // }))
   subscriptions.push(events.on('CursorMovedI', onCursorMove))
 
   const { nvim, isVim } = workspace
