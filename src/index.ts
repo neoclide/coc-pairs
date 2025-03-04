@@ -45,10 +45,11 @@ function shouldRemove(insert: InsertState | undefined, index: number): boolean {
 export async function activate(context: ExtensionContext): Promise<void> {
   let { subscriptions } = context
   const config = workspace.getConfiguration('pairs')
-  const disableLanguages = config.get<string[]>('disableLanguages')
-  const characters = config.get<string[]>('enableCharacters', [])
-  const alwaysPairCharacters = config.get<string[]>('alwaysPairCharacters', [])
-  let enableBackspace = config.get<boolean>('enableBackspace', true)
+  const disableLanguages = config.inspect<string>('disableLanguages').globalValue ?? []
+  const characters = config.get<string[]>('enableCharacters')
+  const alwaysPairCharacters = config.inspect<string[]>('alwaysPairCharacters').globalValue ?? []
+  const enableBackspace = config.inspect<boolean>('enableBackspace').globalValue ?? true
+  const disableBuftypes = config.inspect<string[]>('disableBuftypes').globalValue ?? []
 
   subscriptions.push(events.on('BufUnload', bufnr => {
     insertMaps.delete(bufnr)
@@ -113,9 +114,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   async function insertPair(character: string, pair: string): Promise<string> {
     let samePair = character == pair
-    let arr = await nvim.eval(`[bufnr("%"),get(b:,"coc_pairs_disabled",[]),coc#util#cursor(),&filetype,getline("."),mode(),get(get(g:,'context_filetype#filetypes',{}),&filetype,v:null)]`)
+    let arr = await nvim.eval(`[bufnr("%"),get(b:,"coc_pairs_disabled",[]),coc#util#cursor(),&filetype,getline("."),mode(),get(get(g:,'context_filetype#filetypes',{}),&filetype,v:null),&buftype]`)
     let filetype = arr[3] as string
-    if (disableLanguages.indexOf(filetype) !== -1) return character
+    let buftype = arr[7] ?? '' as string
+    if (disableLanguages.includes(filetype) || disableBuftypes.includes(buftype)) return character
     let bufnr = arr[0] as number
     let line = arr[4] as string
     let mode = arr[5] as string
@@ -215,11 +217,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   nvim.pauseNotification()
   for (let character of characters) {
-    if (pairs.has(character)) {
-      subscriptions.push(
-        workspace.registerExprKeymap('i', character, insertPair.bind(null, character, pairs.get(character)), false)
-      )
-    }
+    if (!pairs.has(character)) continue
+    subscriptions.push(
+      workspace.registerExprKeymap('i', character, insertPair.bind(null, character, pairs.get(character)), false)
+    )
     let matched = pairs.get(character)
     if (matched != character) {
       subscriptions.push(workspace.registerExprKeymap('i', matched, closePair.bind(null, matched), false))
