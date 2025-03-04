@@ -12,6 +12,7 @@ pairs.set('`', '`')
 pairs.set('【', '】')
 pairs.set('「', '」')
 pairs.set('《', '》')
+pairs.set('『', '』')
 
 // move out buffer, move out current line or before character, insert leave
 interface PairInsert {

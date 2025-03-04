@@ -61,7 +61,8 @@
             "`",
             "【",
             "「",
-            "《"
+            "《",
+            "『"
           ],
           "description": "Enabled character list for keymap."
         },
