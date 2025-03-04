@@ -29,6 +29,17 @@ interface InsertState {
 
 const insertMaps: Map<number, InsertState> = new Map()
 
+const allowedQuotePrefixes: Map<string, string[]> = new Map()
+allowedQuotePrefixes.set('python', ['b', 'r', 'f', 'u'])
+
+function checkAllow(filetype: string, character: string, pre: string): boolean {
+  if (character !== "'" && character !== '"') return false
+  let prefixes = allowedQuotePrefixes.get(filetype)
+  if (!prefixes) return false
+  let char = (pre[pre.length - 1] ?? '').toLowerCase()
+  return prefixes.includes(char)
+}
+
 // let currentInsert: InsertState | undefined
 function removeLast(bufnr: number): void {
   let insert = insertMaps.get(bufnr)
@@ -47,6 +58,23 @@ function shouldRemove(insert: InsertState | undefined, index: number): boolean {
   return last.position.character + last.inserted.length === index
 }
 
+function onCursorMove(bufnr: number, cursor: [number, number]): void {
+  let currentInsert = insertMaps.get(bufnr)
+  if (!currentInsert) return
+  if (currentInsert.bufnr != bufnr || currentInsert.lnum !== cursor[0]) return
+  let { pairs } = currentInsert
+  let doc = workspace.getDocument(bufnr)
+  if (!doc || !doc.attached) return
+  let line = doc.getline(cursor[0] - 1)
+  let index = characterIndex(line, cursor[1] - 1)
+  let last = pairs[pairs.length - 1]
+  // move before insert position
+  if (!last || last.position.character > index) {
+    insertMaps.delete(bufnr)
+  }
+}
+
+
 export async function activate(context: ExtensionContext): Promise<void> {
   let { subscriptions } = context
   const config = workspace.getConfiguration('pairs')
@@ -63,24 +91,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   subscriptions.push(events.on('InsertLeave', bufnr => {
     insertMaps.delete(bufnr)
   }))
-  subscriptions.push(events.on('CursorMovedI', (bufnr, cursor) => {
-    let currentInsert = insertMaps.get(bufnr)
-    if (!currentInsert) return
-    if (currentInsert.bufnr != bufnr || currentInsert.lnum !== cursor[0]) {
-      insertMaps.delete(bufnr)
-      return
-    }
-    let { pairs } = currentInsert
-    let doc = workspace.getDocument(bufnr)
-    if (!doc || !doc.attached) return
-    let line = doc.getline(cursor[0] - 1)
-    let index = characterIndex(line, cursor[1] - 1)
-    let last = pairs[pairs.length - 1]
-    // move before insert position
-    if (!last || last.position.character > index) {
-      insertMaps.delete(bufnr)
-    }
-  }))
+  subscriptions.push(events.on('CursorMovedI', onCursorMove))
 
   const { nvim, isVim } = workspace
   const localParis: Map<number, [string, string][]> = new Map()
@@ -151,7 +162,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
       await nvim.eval(`feedkeys("\\<C-G>U\\<Right>", 'in')`)
       return ''
     }
-    if (samePair && pre && (isWord(previous, bufnr) || previous == character)) return character
+    let skipByWord = !checkAllow(filetype, character, pre) && isWord(previous, bufnr)
+    if (samePair && pre.length && (previous == character || skipByWord)) return character
     // Only pair single quotes if previous character is not word.
     if (character === "'" && pre.match(/.*\w$/)) {
       return character
