@@ -256,21 +256,24 @@ export async function activate(context: ExtensionContext): Promise<void> {
     let pairs = doc.getVar<[string, string][]>('pairs', null)
     if (!pairs || !pairs.length) return
     localParis.set(doc.bufnr, pairs)
+    let bufnr = doc.bufnr
     nvim.pauseNotification()
     for (let p of pairs) {
       if (Array.isArray(p) && p.length == 2) {
         let [character, matched] = p
         subscriptions.push(
-          workspace.registerExprKeymap('i', character, insertPair.bind(null, character, matched), true)
+          workspace.registerExprKeymap('i', character, insertPair.bind(null, character, matched), bufnr)
         )
         if (matched != character) {
-          subscriptions.push(workspace.registerExprKeymap('i', matched, closePair.bind(null, matched), true))
+          subscriptions.push(workspace.registerExprKeymap('i', matched, closePair.bind(null, matched), bufnr))
         }
       }
     }
     nvim.resumeNotification(false, true)
   }
-  void createBufferKeymap(workspace.getDocument(workspace.bufnr))
+  workspace.documents.forEach(doc => {
+    createBufferKeymap(doc)
+  })
   workspace.onDidOpenTextDocument(async e => {
     await createBufferKeymap(workspace.getDocument(e.uri))
   })
