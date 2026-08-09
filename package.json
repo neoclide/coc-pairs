@@ -16,7 +16,6 @@
     "coc": "^0.0.80"
   },
   "scripts": {
-    "clean": "rimraf lib",
     "lint": "tsc -p tsconfig.json",
     "build": "node esbuild.js",
     "prepare": "node esbuild.js",
@@ -109,9 +108,10 @@
   "license": "MIT",
   "devDependencies": {
     "@chemzqm/tsconfig": "^0.0.3",
-    "@types/node": "^16.18",
+    "@types/node": "^20.19",
     "coc-test": "^0.1.2",
-    "coc.nvim": "^0.0.83-next.19",
+    "coc.nvim": "^0.0.83-next.25",
+    "typescript": "^6.0.3",
     "esbuild": "^0.25.0"
   }
 }
