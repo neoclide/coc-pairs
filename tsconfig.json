@@ -3,11 +3,11 @@
   "compilerOptions": {
     "declaration": false,
     "outDir": "lib",
-    "target": "es2017",
     "noEmit": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "lib": ["es2018"],
+    "target": "es2022",
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "lib": ["es2017", "es2018", "es2019", "es2020"],
     "plugins": []
   },
   "include": ["src"],

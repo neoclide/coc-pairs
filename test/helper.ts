@@ -65,11 +65,11 @@ export async function cursorCol(): Promise<number> {
   return await workspace.nvim.eval('col(".")') as number
 }
 
-export async function waitForLine(expected: string, timeout = 10000): Promise<void> {
+export async function waitForLine(expected: string, lnum = 1, timeout = 10000): Promise<void> {
   const start = Date.now()
   let last = ''
   while (Date.now() - start < timeout) {
-    last = await getLine()
+    last = await getLine(lnum)
     if (last === expected) return
     await new Promise(resolve => setTimeout(resolve, 50))
   }
