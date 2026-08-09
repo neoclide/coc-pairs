@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict'
 import { before, describe, it } from 'node:test'
 import { workspace } from 'coc.nvim'
-import { cursorCol, getLine, openBuffer, pressKey, typeText, waitFor, waitForCursorCol, waitForLine } from './helper'
+import { activateExtension, cursorCol, deactivateExtension, getLine, openBuffer, pressKey, setBufferPairs, typeText, waitFor, waitForCursorCol, waitForLine } from './helper'
+
+// Deterministic macro input depends on the dynamic insert keymap API
+// (coc.nvim#5727) which is only present in newer coc.nvim builds; older
+// builds fall back to feedkeys and are excluded from that assertion.
+const hasInsertKeymapApi = typeof (workspace as any).registerInsertKeymap === 'function'
 
 describe('auto pair', () => {
   before(async () => {
@@ -16,6 +21,17 @@ describe('auto pair', () => {
     await workspace.nvim.command('enew!')
     await workspace.nvim.command('startinsert')
     await workspace.nvim.call('feedkeys', ['(', 't'])
+    // Wait until the warm-up keystroke's keymap roundtrip has fully finished.
+    // The insert keymap resolves synchronously through RPC; issuing a
+    // text-changing command while that request is still in flight fails with
+    // E565: Not allowed to change text or change window. On Vim the first
+    // roundtrip is consumed without inserting anything, so retry once.
+    try {
+      await waitForLine('()', 1, 1000)
+    } catch (e) {
+      await workspace.nvim.call('feedkeys', ['(', 't'])
+      await waitForLine('()')
+    }
   })
 
   it('pairs round brackets', async () => {
@@ -128,10 +144,93 @@ describe('auto pair', () => {
   })
 
   it('pairs buffer-local characters from b:coc_pairs', async () => {
-    await workspace.nvim.command('autocmd BufNewFile * let b:coc_pairs = [["$", "$"]]')
+    await setBufferPairs('[["$", "$"]]')
     await openBuffer('pairs-dollar')
     await typeText('$')
     await waitForLine('$$')
     assert.equal(await cursorCol(), 2)
+  })
+
+  it('inserts pairs deterministically for batched :normal input', async () => {
+    if (!hasInsertKeymapApi) return
+    let outputs: string[] = []
+    for (let i = 0; i < 20; i++) {
+      await workspace.nvim.command('enew!')
+      await workspace.nvim.command('call setline(1, "seed")')
+      await workspace.nvim.command("normal O('')")
+      await waitForLine("('')")
+      outputs.push(await getLine())
+    }
+    assert.deepEqual([...new Set(outputs)], ["('')"])
+  })
+
+  it('does not reuse pair state from another line', async () => {
+    await openBuffer()
+    await typeText('(')
+    await waitForLine('()')
+    await workspace.nvim.command('stopinsert')
+    await workspace.nvim.command('call setline(2, ")")')
+    await workspace.nvim.command('call cursor(2, 1)')
+    await workspace.nvim.command('startinsert')
+    await typeText(')')
+    // On Vim the first insert-keymap roundtrip after re-entering insert mode
+    // is consumed without effect, so press the key again for the assertion.
+    if (await workspace.nvim.eval('has("nvim")') !== 1) {
+      await typeText(')')
+    }
+    await waitForLine('))', 2)
+  })
+
+  it('pairs buffer-local characters containing quotes and backslashes', async () => {
+    await setBufferPairs('[["x", "\\\""], ["y", "\\\\"], ["z", "ab"]]')
+    await openBuffer('pairs-escaped')
+    await typeText('x')
+    await waitForLine('x"')
+    await typeText('y')
+    await waitForLine('xy\\"')
+    await typeText('z')
+    await waitForLine('xyzab\\"')
+  })
+
+  it('does not retain buffer-local pairs after wipe', async () => {
+    await setBufferPairs('[["$", "$"]]')
+    await openBuffer('pairs-wipe')
+    await typeText('$')
+    await waitForLine('$$')
+    await workspace.nvim.command('bwipeout!')
+    // Let BufUnload clean up buffer-local keymaps and state.
+    await new Promise(resolve => setTimeout(resolve, 300))
+    await setBufferPairs('[["%", "%"]]')
+    await openBuffer('pairs-reuse')
+    await typeText('%')
+    await waitForLine('%%')
+    // The old $ pair must not resurface on the new buffer: typing $ inserts
+    // it as a plain character at the cursor (between the % pair).
+    await typeText('$')
+    await waitForLine('%$%')
+    // Disposal after wipe must not touch stale buffers or error.
+    await deactivateExtension()
+    await activateExtension()
+  })
+
+  it('stops registering buffer-local mappings after deactivation', async () => {
+    await setBufferPairs('[["$", "$"]]')
+    await deactivateExtension()
+    await openBuffer('pairs-deactivated')
+    // Give a stray listener (if any) time to fire before asserting.
+    await new Promise(resolve => setTimeout(resolve, 500))
+    assert.equal(await workspace.nvim.eval('maparg("$", "i")'), '')
+    await activateExtension()
+  })
+
+  it('does not override an existing <BS> mapping', async () => {
+    await deactivateExtension()
+    await workspace.nvim.command('inoremap <BS> USER_BACKSPACE')
+    await activateExtension()
+    assert.equal(await workspace.nvim.eval('maparg("<bs>", "i")'), 'USER_BACKSPACE')
+    await deactivateExtension()
+    assert.equal(await workspace.nvim.eval('maparg("<bs>", "i")'), 'USER_BACKSPACE')
+    await workspace.nvim.command('iunmap <BS>')
+    await activateExtension()
   })
 })

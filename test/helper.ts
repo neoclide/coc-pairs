@@ -37,6 +37,35 @@ export async function openBuffer(name?: string): Promise<Document> {
 }
 
 /**
+ * Register buffer-local pairs for every new buffer through a dedicated
+ * augroup, replacing whatever the previous test installed.
+ */
+export async function setBufferPairs(pairs: string): Promise<void> {
+  await workspace.nvim.command('augroup CocPairsTest')
+  await workspace.nvim.command('autocmd!')
+  await workspace.nvim.command(`autocmd BufNewFile * let b:coc_pairs = ${pairs}`)
+  await workspace.nvim.command('augroup END')
+}
+
+/**
+ * Deactivate the extension under test and wait until its global keymaps are
+ * actually gone, so later assertions cannot race with async disposal.
+ */
+export async function deactivateExtension(): Promise<void> {
+  await workspace.nvim.call('coc#rpc#request', ['deactivateExtension', ['coc-pairs']])
+  await waitFor(async () => await workspace.nvim.eval('maparg("(", "i")') === '')
+}
+
+/**
+ * Re-activate the extension under test and wait until its keymaps are
+ * registered again.
+ */
+export async function activateExtension(): Promise<void> {
+  await workspace.nvim.call('coc#rpc#request', ['activeExtension', ['coc-pairs']])
+  await waitFor(async () => await workspace.nvim.eval('maparg("(", "i")') !== '')
+}
+
+/**
  * Type keys like a user in insert mode. `startinsert` enters insert mode
  * without moving the cursor, then the characters go through normal key
  * remapping, which is what triggers the extension's insert-mode expression
