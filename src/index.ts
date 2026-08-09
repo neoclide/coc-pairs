@@ -157,6 +157,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
     if (character == '<' && (previous == ' ' || previous == '<')) {
       return character
     }
+    // PHP: don't pair '<' at the start of the first two lines, so opening
+    // tags like `<?php` and `<?=` type naturally. The second line covers
+    // files that start with a shebang.
+    if (character === '<' && filetype === 'php' && pos.line <= 1 && pos.character === 0) {
+      return character
+    }
     if (samePair && rest[0] == character && rest[1] != character) {
       // move position
       await nvim.eval(`feedkeys("\\<C-G>U\\<Right>", 'in')`)

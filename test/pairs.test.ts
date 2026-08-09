@@ -84,6 +84,33 @@ describe('auto pair', () => {
     assert.equal(await cursorCol(), 2)
   })
 
+  it('does not pair < at the start of a php file', async () => {
+    await openBuffer()
+    await workspace.nvim.command('setf php')
+    await typeText('<')
+    await waitForLine('<')
+    await typeText('?php')
+    await waitForLine('<?php')
+  })
+
+  it('does not pair < at the start of the second line of a php file', async () => {
+    await openBuffer()
+    await workspace.nvim.command('call setline(1, ["#!/usr/bin/env php", ""])')
+    await workspace.nvim.command('call cursor(2, 1)')
+    await workspace.nvim.command('setf php')
+    await typeText('<')
+    await waitForLine('<', 2)
+  })
+
+  it('still pairs < mid-line in php', async () => {
+    await openBuffer()
+    await workspace.nvim.command('call setline(1, "$a")')
+    await workspace.nvim.command('call cursor(1, 3)')
+    await workspace.nvim.command('setf php')
+    await typeText('<')
+    await waitForLine('$a<>')
+  })
+
   it('respects b:coc_pairs_disabled', async () => {
     await openBuffer()
     await workspace.nvim.command('let b:coc_pairs_disabled = ["("]')
