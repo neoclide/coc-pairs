@@ -1,6 +1,12 @@
 # coc-pairs
 
+<p align="center">
+  <img src="logo.svg" alt="coc-pairs" width="128">
+</p>
+
 Auto pair extension for [coc.nvim](https://github.com/neoclide/coc.nvim).
+
+[![CI](https://github.com/neoclide/coc-pairs/actions/workflows/ci.yaml/badge.svg)](https://github.com/neoclide/coc-pairs/actions/workflows/ci.yaml)
 
 **Note** you can use other vim auto pairs plugins with coc.nvim, it's a
 simplified implementation to make auto pairs work like in VSCode.

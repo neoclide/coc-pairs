@@ -19,7 +19,18 @@
     "clean": "rimraf lib",
     "lint": "tsc -p tsconfig.json",
     "build": "node esbuild.js",
-    "prepare": "node esbuild.js"
+    "prepare": "node esbuild.js",
+    "test": "npm run build && coc-test 'test/**/*.test.ts'",
+    "test:integration": "npm run build && coc-test 'test/**/*.test.ts'",
+    "test:integration:nvim": "npm run build && coc-test --nvim 'test/**/*.test.ts'",
+    "test:integration:vim": "npm run build && coc-test --vim 'test/**/*.test.ts'"
+  },
+  "coc-test": {
+    "user-settings": {
+      "pairs.disableLanguages": [
+        "disabled"
+      ]
+    }
   },
   "activationEvents": [
     "*"
@@ -99,8 +110,8 @@
   "devDependencies": {
     "@chemzqm/tsconfig": "^0.0.3",
     "@types/node": "^16.18",
-    "esbuild": "^0.25.0",
-    "coc.nvim": "^0.0.83-next.19"
-  },
-  "dependencies": {}
+    "coc-test": "^0.1.2",
+    "coc.nvim": "^0.0.83-next.19",
+    "esbuild": "^0.25.0"
+  }
 }

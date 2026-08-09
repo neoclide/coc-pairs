@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="coc-pairs logo">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#12355b"/>
+      <stop offset="1" stop-color="#071a2e"/>
+    </linearGradient>
+    <linearGradient id="parens" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7df3e1"/>
+      <stop offset="1" stop-color="#14b8a6"/>
+    </linearGradient>
+    <linearGradient id="plus" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#a5f3fc"/>
+      <stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#background)"/>
+  <path d="M 116 62 C 88 62 80 84 80 106 C 80 150 88 178 116 194"
+        fill="none" stroke="url(#parens)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 140 62 C 168 62 176 84 176 106 C 176 150 168 178 140 194"
+        fill="none" stroke="url(#parens)" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 128 112 L 128 144 M 112 128 L 144 128"
+        fill="none" stroke="url(#plus)" stroke-width="9" stroke-linecap="round"/>
+</svg>
