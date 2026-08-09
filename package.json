@@ -15,6 +15,10 @@
   "engines": {
     "coc": "^0.0.80"
   },
+  "files": [
+    "lib",
+    "!**/*.map"
+  ],
   "scripts": {
     "lint": "tsc -p tsconfig.json",
     "build": "node esbuild.js",
