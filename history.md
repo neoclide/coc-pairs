@@ -1,3 +1,7 @@
+## 1.5.4
+
+- update coc-test (d89f641)
+
 ## 1.5.3
 
 - ignore node_modules (9ada65b)
