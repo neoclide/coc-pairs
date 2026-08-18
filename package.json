@@ -112,8 +112,8 @@
   "license": "MIT",
   "devDependencies": {
     "@chemzqm/tsconfig": "^0.0.3",
-    "@types/node": "^20.19",
-    "coc-test": "^0.1.3",
+    "@types/node": "^22.15",
+    "coc-test": "^0.1.6",
     "coc.nvim": "^0.0.83-next.25",
     "typescript": "^6.0.3",
     "esbuild": "^0.25.0"
