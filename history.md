@@ -1,3 +1,9 @@
+## 1.5.5
+
+- use latest esbuild (f5fd72f)
+- Merge branch 'master' of github.com:neoclide/coc-pairs (74218e2)
+- update coc-test (f1bbf34)
+
 ## 1.5.4
 
 - update coc-test (d89f641)
