@@ -5,6 +5,9 @@ on:
     branches: [master]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: coc-test (${{ matrix.editor }})
@@ -15,6 +18,17 @@ jobs:
         editor: [nvim, vim]
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      # coc-test 0.2.0 does not authenticate its GitHub API downloads.
+      - name: Check out coc.nvim release
+        uses: actions/checkout@v6
+        with:
+          repository: neoclide/coc.nvim
+          ref: release
+          path: .coc-nvim
+          persist-credentials: false
 
       - uses: actions/setup-node@v6
         with:
@@ -33,4 +47,6 @@ jobs:
         run: npm run lint
 
       - name: Integration tests (${{ matrix.editor }})
+        env:
+          COC_TEST_COC_PATH: ${{ github.workspace }}/.coc-nvim
         run: npm run test:integration:${{ matrix.editor }}
