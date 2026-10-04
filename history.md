@@ -1,3 +1,7 @@
+## 1.5.6
+
+- ci: authenticate coc.nvim checkout and upgrade coc-test (#94) (5a30241)
+
 ## 1.5.5
 
 - use latest esbuild (f5fd72f)
